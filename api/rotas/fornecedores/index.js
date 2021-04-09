@@ -6,11 +6,11 @@ const SerializadorFornecedor = require('../../Serializador').SerializadorFornece
 roteador.get('/', async (requisicao, resposta) => {
     const resultados = await TabelaFornecedor.listar()
     resposta.status(200)
-    const Serializador = new SerializadorFornecedor(
+    const serializador = new SerializadorFornecedor(
         resposta.getHeader('Content-type')
     )
     resposta.send(
-        Serializador.Serializar(resultados)
+        serializador.Serializar(resultados)
     )
 })
 
@@ -75,5 +75,22 @@ roteador.put('/:id', async (requisicao, resposta, proximo) => {
         proximo(erro)
     }
  })
+
+ const roteadorProdutos = require('./produtos')
+
+ const verificarFornecedor = async (requisicao, resposta, proximo) => {
+     try {
+        const id = requisicao.params.idFornecedor
+        const fornecedor = new Fornecedor({id: id})
+        await fornecedor.detalhar()
+        requisicao.fornecedor = fornecedor
+        proximo()
+
+     } catch (erro) {
+        proximo(erro)
+     }
+ }
+
+ roteador.use('/:idFornecedor/produtos', verificarFornecedor, roteadorProdutos)
 
 module.exports = roteador
