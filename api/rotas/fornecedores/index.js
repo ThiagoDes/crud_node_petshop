@@ -3,11 +3,19 @@ const TabelaFornecedor = require('./TabelaFornecedor')
 const Fornecedor = require('./Fornecedor')
 const SerializadorFornecedor = require('../../Serializador').SerializadorFornecedor
 
+roteador.options('/', async (requisicao, resposta) => {
+    resposta.set('Access-Control-Allow-Methods', 'GET, POST')
+    resposta.set('Access-Control-Allow-Headers', 'Content-type')
+    resposta.status(204)
+    resposta.end()
+})
+
 roteador.get('/', async (requisicao, resposta) => {
     const resultados = await TabelaFornecedor.listar()
     resposta.status(200)
     const serializador = new SerializadorFornecedor(
-        resposta.getHeader('Content-type')
+        resposta.getHeader('Content-type'),
+        ['empresa']
     )
     resposta.send(
         serializador.Serializar(resultados)
@@ -21,7 +29,8 @@ roteador.post('/', async (requisicao, resposta, proximo) => {
         await fornecedor.criar()
         resposta.status(201)
         const Serializador = new SerializadorFornecedor(
-            resposta.getHeader('Content-type')
+            resposta.getHeader('Content-type'),
+            ['empresa']
         )
         resposta.send(
             Serializador.Serializar(fornecedor)
@@ -29,6 +38,13 @@ roteador.post('/', async (requisicao, resposta, proximo) => {
     } catch (erro) {
         proximo(erro)
     }
+})
+
+roteador.options('/:id', async (requisicao, resposta) => {
+    resposta.set('Access-Control-Allow-Methods', 'GET, PUT, DELETE')
+    resposta.set('Access-Control-Allow-Headers', 'Content-type')
+    resposta.status(204)
+    resposta.end()
 })
 
 roteador.get('/:id', async (requisicao, resposta, proximo) => {
@@ -39,7 +55,7 @@ roteador.get('/:id', async (requisicao, resposta, proximo) => {
         resposta.status(200)
         const Serializador = new SerializadorFornecedor(
             resposta.getHeader('Content-type'),
-            ['email', 'dataCriacao', 'dataAtualizacao', 'versao']
+            ['empresa', 'email', 'dataCriacao', 'dataAtualizacao', 'versao']
         )
         resposta.send(
             Serializador.Serializar(fornecedor)
